@@ -1,0 +1,11 @@
+  develop[m
+  feature/alerta-estoque[m
+  feature/editar-item[m
+  feature/registrar-entrada-item[m
+  feature/registrar-saida-item[m
+  feature/regra_negocio_lote[m
+  fix/app-local-exemplo[m
+  fix/lote-migration[m
+  fix/quantidade-movimentacao[m
+* [32mfix/regra-quantidade-movimentacao[m
+  main[m

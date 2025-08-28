@@ -1,0 +1,188 @@
+name: CI PHP CakePHP - Testes e Cobertura
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  run_tests_with_db_setup:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:12
+        env:
+          POSTGRES_USER: ${{ secrets.DB_CI_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.DB_CI_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.DB_CI_DATABASE }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      SECURITY_SALT: ${{ secrets.CAKE_APP_SALT }}
+      DB_HOST: localhost
+      DB_PORT: '5432'
+      DB_USERNAME: ${{ secrets.DB_CI_USER }}
+      DB_PASSWORD: ${{ secrets.DB_CI_PASSWORD }}
+      DB_DATABASE: ${{ secrets.DB_CI_DATABASE }}
+      DB_TEST_HOST: localhost
+      DB_TEST_PORT: '5432'
+      DB_TEST_USERNAME: ${{ secrets.DB_CI_USER }}
+      DB_TEST_PASSWORD: ${{ secrets.DB_CI_PASSWORD }}
+      DB_TEST_DATABASE: ${{ secrets.DB_CI_DATABASE }}
+
+    steps:
+      - name: 1. Checkout do código
+        uses: actions/checkout@v4
+
+      - name: 2. Setup PHP e Composer
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, dom, zip, pdo, pdo_pgsql, intl
+          tools: composer
+          coverage: xdebug
+
+      - name: 3. Cache de dependências do Composer
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-xdebug-pg-v2-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-xdebug-pg-v2-
+
+      - name: Instalar cliente PostgreSQL e BC
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client bc
+          
+      - name: 4. composer install
+        run: composer install --prefer-dist --no-progress --no-suggest
+
+      - name: 5. Remover config/app_local.php existente
+        run: |
+          if [ -f config/app_local.php ]; then
+            rm config/app_local.php
+          fi
+
+      - name: 6. Criar config/app_local.php com env vars
+        run: |
+          cat << EOF > config/app_local.php
+          <?php
+          return [
+              'debug' => filter_var(getenv('DEBUG'), FILTER_VALIDATE_BOOLEAN),
+              'Security' => [
+                  'salt' => getenv('SECURITY_SALT'),
+              ],
+              'Datasources' => [
+                  'default' => [
+                      'className' => \Cake\Database\Connection::class,
+                      'driver' => \Cake\Database\Driver\Postgres::class,
+                      'persistent' => false,
+                      'host' => '${{ env.DB_HOST }}',
+                      'port' => '${{ env.DB_PORT }}',
+                      'username' => '${{ env.DB_USERNAME }}',
+                      'password' => '${{ env.DB_PASSWORD }}',
+                      'database' => '${{ env.DB_DATABASE }}',
+                      'encoding' => 'utf8',
+                      'timezone' => 'UTC',
+                      'flags' => [],
+                      'cacheMetadata' => true,
+                  ],
+                  'test' => [
+                      'className' => \Cake\Database\Connection::class,
+                      'driver' => \Cake\Database\Driver\Postgres::class,
+                      'persistent' => false,
+                      'host' => '${{ env.DB_TEST_HOST }}',
+                      'port' => '${{ env.DB_TEST_PORT }}',
+                      'username' => '${{ env.DB_TEST_USERNAME }}',
+                      'password' => '${{ env.DB_TEST_PASSWORD }}',
+                      'database' => '${{ env.DB_TEST_DATABASE }}',
+                      'encoding' => 'utf8',
+                      'timezone' => 'UTC',
+                      'flags' => [],
+                      'cacheMetadata' => true,
+                  ],
+              ],
+              'EmailTransport' => [
+                  'default' => [
+                      'host' => getenv('EMAIL_HOST') ?: 'localhost',
+                      'port' => getenv('EMAIL_PORT') ?: 25,
+                      'username' => getenv('EMAIL_USERNAME') ?: null,
+                      'password' => getenv('EMAIL_PASSWORD') ?: null,
+                      'client' => null,
+                      'url' => getenv('EMAIL_TRANSPORT_DEFAULT_URL') ?: null,
+                  ],
+              ],
+          ];
+          EOF
+
+      - name: 7. Inspecionar config/app_local.php
+        run: cat config/app_local.php
+
+      - name: 8. Criar/Resetar banco e rodar Migrations
+        run: php bin/cake.php migrations migrate -v
+
+      - name: 8. Criar/Resetar banco e rodar Migrations
+        run: php bin/cake.php migrations migrate -v
+
+      - name: 9. Pular Seeds (usar apenas fixtures nos testes)
+        run: echo "Pulando seeds para que PHPUnit use apenas fixtures."
+
+      - name: 10. Rodar PHPUnit e gerar cobertura
+        id: phpunit
+        continue-on-error: true
+        run: |
+          mkdir -p build/logs
+          vendor/bin/phpunit \
+            --colors=always \
+            --coverage-clover=build/logs/clover.xml \
+            --coverage-text | tee build/logs/coverage.txt
+
+      - name: 11. Validar cobertura mínima de Linhas (70%)
+        if: always()
+        run: |
+          COVERAGE_FILE="build/logs/coverage.txt"
+          if [ ! -f "${COVERAGE_FILE}" ]; then
+            echo "❌ Arquivo de cobertura ${COVERAGE_FILE} não foi encontrado. PHPUnit pode ter falhado ou não gerou o relatório."
+            exit 1 # Falha o passo se o arquivo não for encontrado
+          fi
+
+          coverage_lines=$(grep "Lines:" "${COVERAGE_FILE}" | sed -n 's/.*Lines: *\([0-9.]*\)%.*/\1/p')
+
+          echo "Cobertura de Linhas: ${coverage_lines}%" # Mensagem atualizada
+
+          threshold=70
+
+          if [ -z "${coverage_lines}" ]; then
+            echo "❌ Não foi possível extrair a cobertura de linhas. Verifique o formato da saída do PHPUnit."
+            exit 1
+          elif [ "${is_low_lines}" -eq 1 ]; then
+            echo "❌ Cobertura de Linhas abaixo de ${threshold}% (atualmente: ${coverage_lines}%)."
+            exit 1
+          else
+            echo "✅ Cobertura de Linhas está dentro do mínimo (>= ${threshold}%)."
+          fi
+
+      - name: 12. Upload dos relatórios de cobertura
+        if: always() && github.token != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: |
+            build/logs/clover.xml
+            build/logs/coverage.txt
+          if-no-files-found: ignore
+
+

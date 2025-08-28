@@ -1,0 +1,63 @@
+name: Feature Request
+description: Sugira uma nova funcionalidade ou melhoria
+title: "RF-0XX.X: "
+assignees:
+  [
+    "theycelz",
+    "jecelen",
+    "GilvanFe",
+    "GuilhermeCupertino",
+    "Lucas",
+    "marcelloAnth",
+  ]
+body:
+  - type: textarea
+    id: desired-feature
+    attributes:
+      label: ✨ Qual é a funcionalidade desejada?
+      description: Descreva a feature que você gostaria de ver implementada e o problema que ela resolve.
+      placeholder: "Exemplo: Permitir login com conta do Google para facilitar o acesso de usuários que já têm Gmail."
+    validations:
+      required: true
+
+  - type: input
+    id: requirement-code
+    attributes:
+      label: 📌 Código do Requisito (RF ou RNF)
+      description: "Informe o identificador do requisito, por exemplo: RF-01 ou RNF-03."
+      placeholder: RF-01
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-cases
+    attributes:
+      label: 🚀 Caso de Uso ou Sugestão de Fluxo
+      description: Descreva o fluxo principal, fluxos alternativos (se houver), e pré/pós-condições.
+      placeholder: |
+        Funcionalidade: Login com conta Google
+
+        Fluxo principal:
+        1. Usuário acessa a tela de login
+        2. Clica em “Entrar com Google”
+        3. É redirecionado para autenticação do Google
+        4. Após autenticação, retorna à aplicação já logado
+
+        Fluxo alternativo:
+        - Caso o usuário não permita o acesso no Google, volta à tela de login com uma mensagem de erro
+
+        Pré-condições:
+        - O usuário precisa ter uma conta Google válida
+
+        Pós-condições:
+        - O usuário está autenticado e com sessão ativa
+    validations:
+      required: false
+
+  - type: textarea
+    id: references
+    attributes:
+      label: 📎 Referências ou exemplos
+      description: Inclua prints, links ou exemplos de outras ferramentas que fazem algo parecido.
+    validations:
+      required: false

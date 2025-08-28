@@ -1,0 +1,36 @@
+name: General Request
+description: Solicitação geral para qualquer tipo de tarefa
+title: "<TIPO>-0XX: "
+assignees:
+  [
+    "theycelz",
+    "jecelen",
+    "GilvanFe",
+    "GuilhermeCupertino",
+    "Lucas",
+    "marcelloAnth",
+  ]
+body:
+  - type: textarea
+    id: task-description
+    attributes:
+      label: 📝 Descrição da Task
+      description: Descreva claramente a tarefa a ser realizada.
+      placeholder: Explique o que precisa ser feito, o contexto e qualquer detalhe relevante.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: 📂 Categoria
+      description: Selecione a categoria da solicitação.
+      options:
+        - DevOps (IF)
+        - Desenvolvimento (DV)
+        - UX/UI (U)
+        - Improvement (I)
+        - Documentação (DO)
+        - Outros (O)
+    validations:
+      required: true

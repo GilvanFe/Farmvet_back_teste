@@ -1,0 +1,116 @@
+name: Bug Report
+description: Reporte um problema ou bug encontrado
+title: "BUG-0XX: "
+assignees:
+  - theycelz
+  - jecelen
+  - GilvanFe
+  - GuilhermeCupertino
+  - Lucas
+  - marcelloAnth
+
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: 📋 Contexto
+      description: Descreva o contexto e expectativa do funcionamento
+      placeholder: |
+        Durante a execução das seeds de movimentação no backend, o sistema deveria popular corretamente a tabela movimentação após rodar as migrations. A expectativa é que as seeds sejam inseridas de forma consistente...
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: ⚠️ Problema
+      description: Descreva o problema encontrado de forma clara
+      placeholder: |
+        Ao rodar as seeds, ocorre erro relacionado à coluna inexistente item_id na tabela movimentação. O sistema tenta inserir uma movimentação referenciando item_id, mas essa coluna não existe...
+    validations:
+      required: true
+
+  - type: textarea
+    id: error-message
+    attributes:
+      label: 🚨 Mensagem de Erro
+      description: Cole a mensagem de erro completa (se houver)
+      placeholder: |
+        2025-08-18 18:26:07 error: [Cake\Database\Exception\QueryException] SQLSTATE[42703]: Undefined column: 7 ERROR: column "item_id" of relation "movimentacao" does not exist LINE 1: ...
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: 🔄 Passos para Reproduzir
+      description: Liste os passos necessários para reproduzir o bug
+      placeholder: |
+        1. Clonar o repositório
+        2. Criar o banco de dados
+        3. Rodar as migrations
+        4. Executar os comandos de seed:
+           bin/cake migrations seed --seed MovimentacaoVencSeed
+           bin/cake migrations seed --seed MovimentacaoPercaSeed
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-result
+    attributes:
+      label: ✅ Resultado Esperado
+      description: Descreva o que deveria acontecer
+      placeholder: "As seeds de movimentação (MovimentacaoVencSeed e MovimentacaoPercaSeed) deveriam ser executadas corretamente, cadastrando os registros necessários na tabela movimentacao."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-result
+    attributes:
+      label: ❌ Resultado Obtido
+      description: Descreva o que aconteceu na prática
+      placeholder: "Erro de execução ao tentar inserir registros, pois a coluna item_id não existe na tabela movimentacao."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: ⚡ Severidade
+      description: Defina o nível de severidade do bug
+      options:
+        - "Baixa"
+        - "Média"
+        - "Alta"
+        - "Crítica"
+      default: 2
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: 🌍 Ambiente
+      description: Ambiente onde o bug foi encontrado
+      options:
+        - "Local"
+        - "Testes"
+        - "Homologação"
+        - "Produção"
+      default: 1
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 📸 Evidências
+      description: Screenshots, logs adicionais ou outras evidências do defeito
+      placeholder: |
+        Cole aqui:
+        - Screenshots
+        - Logs de erro
+        - Outras evidências
+    validations:
+      required: false
