@@ -12,7 +12,7 @@
         "cnizzardini/cakephp-swagger-bake": "^3.0",
         "fakerphp/faker": "^1.21",
         "mobiledetect/mobiledetectlib": "^4.8.03",
-        "phpoffice/phpspreadsheet": "^1.28"
+        "phpoffice/phpspreadsheet": "^5.2"
     },
     "require-dev": {
         "cakephp/bake": "^3.1",
