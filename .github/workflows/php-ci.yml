@@ -55,7 +55,7 @@ jobs:
           coverage: xdebug
 
       - name: 3. Cache de dependências do Composer
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: vendor
           key: ${{ runner.os }}-php-xdebug-pg-v2-${{ hashFiles('**/composer.lock') }}
